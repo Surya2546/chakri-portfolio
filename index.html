@@ -267,7 +267,7 @@ body.light .mobile-menu{background:rgba(245,245,250,0.98)}
 #hire-btn.visible{opacity:1;transform:translateY(0)}
 #hire-btn:hover{box-shadow:0 6px 32px rgba(108,99,255,0.5);transform:translateY(-2px)}
 #hire-btn .h-pulse{width:7px;height:7px;border-radius:50%;background:#fff;opacity:0.85;animation:pulse 1.5s infinite}
-@media(max-width:900px){#hire-btn{display:none}}
+@media(max-width:1024px){#hire-btn{display:none}}
 
 /* ── ANIMATED COUNTERS ── */
 .stat-num.counted{transition:none}
@@ -1007,17 +1007,47 @@ const st = document.getElementById('scroll-top');
 window.addEventListener('scroll', () => { st.classList.toggle('visible', window.scrollY > 400); });
 st.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
+// ── SMART MAIL OPENER ──
+function openMail(subject, body) {
+  const email = 'kodidasuchakri2546@gmail.com';
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isMobile = isAndroid || isIOS;
+  const gmailWeb = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(email)}&su=${encodeURIComponent(subject)}${body ? '&body=' + encodeURIComponent(body) : ''}`;
+
+  if (isAndroid) {
+    // Try Gmail app via intent, fall back to web
+    const intent = `intent://compose?to=${encodeURIComponent(email)}&subject=${encodeURIComponent(subject)}#Intent;scheme=googlegmail;package=com.google.android.gm;end`;
+    const fallbackTimer = setTimeout(() => {
+      window.open(gmailWeb, '_blank');
+    }, 1500);
+    window.location.href = intent;
+    // If app opened successfully, clear the fallback
+    window.addEventListener('blur', () => clearTimeout(fallbackTimer), { once: true });
+  } else if (isIOS) {
+    // Try Gmail app on iOS, fall back to mailto then web
+    const gmailIOS = `googlegmail://co?to=${encodeURIComponent(email)}&subject=${encodeURIComponent(subject)}`;
+    const fallbackTimer = setTimeout(() => {
+      // If Gmail app not installed, try mailto (opens Apple Mail)
+      const mailtoFallback = setTimeout(() => {
+        window.open(gmailWeb, '_blank');
+      }, 1000);
+      window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
+    }, 1500);
+    window.location.href = gmailIOS;
+    window.addEventListener('blur', () => clearTimeout(fallbackTimer), { once: true });
+  } else {
+    // Desktop — open Gmail web in new tab
+    window.open(gmailWeb, '_blank');
+  }
+}
+
 // ── FLOATING HIRE BUTTON ──
 const hireBtn = document.getElementById('hire-btn');
 hireBtn.classList.add('visible');
-document.getElementById('hire-btn').addEventListener('click', function(e) {
+hireBtn.addEventListener('click', function(e) {
   e.preventDefault();
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  if (isMobile) {
-    window.location.href = 'mailto:kodidasuchakri2546@gmail.com?subject=Hiring Inquiry — Varaprasad Chakri';
-  } else {
-    window.open('https://mail.google.com/mail/?view=cm&to=kodidasuchakri2546@gmail.com&su=Hiring Inquiry — Varaprasad Chakri', '_blank');
-  }
+  openMail('Hiring Inquiry — Varaprasad Chakri', '');
 });
 
 // ── THEME TOGGLE ──
@@ -1120,12 +1150,7 @@ document.querySelectorAll('.stat-num').forEach(el => {
 // ── CONTACT EMAIL CLICK HANDLER ──
 document.getElementById('contact-email-link').addEventListener('click', function(e) {
   e.preventDefault();
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  if (isMobile) {
-    window.location.href = 'mailto:kodidasuchakri2546@gmail.com';
-  } else {
-    window.open('https://mail.google.com/mail/?view=cm&to=kodidasuchakri2546@gmail.com', '_blank');
-  }
+  openMail('Hello Chakri', '');
 });
 
 // ── TYPEWRITER ──
